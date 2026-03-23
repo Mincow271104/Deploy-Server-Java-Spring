@@ -1,0 +1,49 @@
+version: '3.8'
+
+services:
+  app:
+    image: elearning-app:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:mysql://db:3306/elearning_db?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+      - SPRING_DATASOURCE_USERNAME=root
+      - SPRING_DATASOURCE_PASSWORD=rootpassword
+      # Tự động tạo/cập nhật các bảng khi chạy trong Docker
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update 
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # Map thư mục upload ra ngoài host để không bị mất ảnh khi restart container
+      - ./course_uploads:/app/src/main/resources/static/uploads
+    networks:
+      - elearning-network
+
+  db:
+    image: mysql:8.0
+    ports:
+      - "3307:3306" # Expose ra port 3307 để không bị đụng XAMPP (3306) trên máy thật
+    environment:
+      - MYSQL_DATABASE=elearning_db
+      - MYSQL_ROOT_PASSWORD=rootpassword
+    volumes:
+      # Map data MySQL ra ngoài để không mất dữ liệu database
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - elearning-network
+
+networks:
+  elearning-network:
+    driver: bridge
+
+volumes:
+  db_data:

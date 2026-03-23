@@ -1,0 +1,16 @@
+com\example\elearning\model\Course.class
+com\example\elearning\service\CourseService.class
+com\example\elearning\repository\StudentRepository.class
+com\example\elearning\model\Student.class
+com\example\elearning\service\StudentService.class
+com\example\elearning\ElearningApplication.class
+com\example\elearning\controller\AdminCourseController.class
+com\example\elearning\controller\AuthController.class
+com\example\elearning\repository\RoleRepository.class
+com\example\elearning\service\CustomUserDetailsService.class
+com\example\elearning\model\Role.class
+com\example\elearning\config\SecurityConfig.class
+com\example\elearning\controller\CourseController.class
+com\example\elearning\repository\CourseRepository.class
+com\example\elearning\repository\CategoryRepository.class
+com\example\elearning\model\Category.class

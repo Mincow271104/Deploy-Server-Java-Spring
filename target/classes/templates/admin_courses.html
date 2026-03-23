@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý học phần - Admin</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a th:href="@{/}" class="nav-brand">📚 Course Registration</a>
+            <div class="nav-links">
+                <div sec:authorize="isAuthenticated()" class="user-menu">
+                    <a th:href="@{/}" class="btn btn-outline btn-sm">🏠 Trang chủ</a>
+                    <!-- Avatar Dropdown -->
+                    <div class="avatar-dropdown">
+                        <img class="avatar-img"
+                             th:if="${currentUser != null && currentUser.avatar != null && !currentUser.avatar.isEmpty()}"
+                             th:src="@{${currentUser.avatar}}" alt="Avatar">
+                        <div class="avatar-img avatar-default"
+                             th:unless="${currentUser != null && currentUser.avatar != null && !currentUser.avatar.isEmpty()}">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                        </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-header">
+                                <strong th:text="${currentUser != null && currentUser.fullName != null ? currentUser.fullName : (currentUser != null ? currentUser.username : 'User')}">User</strong>
+                                <span class="dropdown-email" th:if="${currentUser != null}" th:text="${currentUser.email}">email</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a th:href="@{/account}" class="dropdown-item">👤 Tài khoản</a>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <span id="darkModeIcon">🌙</span> <span id="darkModeText">Chế độ tối</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item dropdown-logout">🚪 Đăng xuất</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header with Search -->
+    <header class="header">
+        <div class="container header-content">
+            <div>
+                <h1>⚙️ Quản lý học phần</h1>
+                <p>Thêm, sửa, xóa các học phần trong hệ thống</p>
+            </div>
+            <div style="display:flex; gap:12px; align-items:center;">
+                <form class="search-bar search-bar-inline" th:action="@{/admin/courses}" method="get">
+                    <input type="hidden" name="categoryId" th:value="${selectedCategoryId}">
+                    <input type="text" name="keyword" th:value="${keyword}" placeholder="🔍 Tìm kiếm..." class="search-input">
+                    <button type="submit" class="btn-search">Tìm</button>
+                </form>
+                <a th:href="@{/admin/courses/create}" class="btn btn-add">➕ Thêm học phần</a>
+                <button class="btn btn-add" onclick="document.getElementById('categoryModal').style.display='flex'" style="background: rgba(72,187,120,0.3); border-color: rgba(72,187,120,0.5);">📂 Thêm danh mục</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Category Filter -->
+    <div class="container filter-bar">
+        <a th:href="@{/admin/courses(keyword=${keyword})}" th:classappend="${selectedCategoryId == null} ? ' active' : ''" class="filter-chip">Tất cả</a>
+        <a th:each="cat : ${categories}" th:href="@{/admin/courses(categoryId=${cat.id}, keyword=${keyword})}"
+           th:classappend="${selectedCategoryId != null && selectedCategoryId == cat.id} ? ' active' : ''"
+           th:text="${cat.name}" class="filter-chip">Category</a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="container" style="margin-top: 20px;">
+        <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+        <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="admin-table-wrapper" th:if="${not #lists.isEmpty(courses)}">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th style="width: 80px;">Ảnh</th>
+                        <th>Tên học phần</th>
+                        <th style="width: 100px;">Tín chỉ</th>
+                        <th>Giảng viên</th>
+                        <th style="width: 160px;">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="course, iter : ${courses}">
+                        <td th:text="${iter.count}">1</td>
+                        <td>
+                            <img class="table-img"
+                                 th:if="${course.image != null and !course.image.isEmpty()}"
+                                 th:src="@{${course.image}}"
+                                 th:alt="${course.name}">
+                            <span th:unless="${course.image != null and !course.image.isEmpty()}" class="no-img">—</span>
+                        </td>
+                        <td class="td-name" th:text="${course.name}">Course Name</td>
+                        <td style="text-align: center;" th:text="${course.credits}">3</td>
+                        <td th:text="${course.lecturer != null ? course.lecturer : '—'}">Lecturer</td>
+                        <td>
+                            <div class="table-actions">
+                                <a th:href="@{/admin/courses/edit/{id}(id=${course.id})}" class="btn-action btn-edit">✏️ Sửa</a>
+                                <a th:href="@{/admin/courses/delete/{id}(id=${course.id})}" class="btn-action btn-delete"
+                                   onclick="return confirm('Bạn có chắc muốn xóa học phần này?')">🗑️ Xóa</a>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" th:if="${#lists.isEmpty(courses)}">
+            <p>📭 Chưa có học phần nào. Hãy thêm học phần mới!</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Course Registration System</p>
+        </div>
+    </footer>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <h3>📂 Thêm danh mục mới</h3>
+            <form th:action="@{/admin/courses/add-category}" method="post">
+                <div class="form-group">
+                    <label for="categoryName">Tên danh mục</label>
+                    <input type="text" id="categoryName" name="categoryName" placeholder="Nhập tên danh mục..." required>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">💾 Lưu</button>
+                    <button type="button" class="btn btn-outline" onclick="document.getElementById('categoryModal').style.display='none'">Hủy</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script th:src="@{/js/darkmode.js}"></script>
+</body>
+</html>

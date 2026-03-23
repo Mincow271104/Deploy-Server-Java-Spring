@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Truy cập bị từ chối - 403</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="denied-container">
+        <div class="denied-card">
+            <div class="denied-icon">🚫</div>
+            <h1>403 - Truy cập bị từ chối</h1>
+            <p class="denied-message">Bạn không có quyền truy cập trang này!</p>
+
+            <div class="denied-detail">
+                <span sec:authorize="hasRole('STUDENT')">
+                    Tài khoản <strong>STUDENT</strong> không được phép truy cập khu vực quản trị.
+                </span>
+                <span sec:authorize="hasRole('ADMIN')">
+                    Tài khoản <strong>ADMIN</strong> không được phép truy cập trang đăng ký học phần.
+                </span>
+            </div>
+
+            <div class="denied-actions">
+                <a th:href="@{/}" class="btn btn-primary">🏠 Về trang chủ</a>
+                <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/courses}" class="btn btn-outline">⚙️ Quản lý học phần</a>
+                <a sec:authorize="hasRole('STUDENT')" th:href="@{/enroll}" class="btn btn-outline">📋 Đăng ký học phần</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

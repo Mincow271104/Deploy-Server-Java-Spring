@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} + ' - Course Registration'">Course Form</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a th:href="@{/}" class="nav-brand">📚 Course Registration</a>
+            <div class="nav-links">
+                <a th:href="@{/}" class="btn btn-outline btn-sm">← Về trang chủ</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Form -->
+    <main class="container">
+        <div class="form-container">
+            <h2 th:text="${pageTitle}">Form</h2>
+
+            <form th:action="${course.id != null} ? @{/admin/courses/edit/{id}(id=${course.id})} : @{/admin/courses/create}"
+                  th:object="${course}" method="post" enctype="multipart/form-data">
+
+                <div class="form-group">
+                    <label for="name">Tên học phần <span class="required">*</span></label>
+                    <input type="text" id="name" th:field="*{name}" placeholder="Nhập tên học phần" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="credits">Số tín chỉ <span class="required">*</span></label>
+                        <input type="number" id="credits" th:field="*{credits}" min="1" max="10" placeholder="3" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="categoryId">Danh mục</label>
+                        <select id="categoryId" th:field="*{categoryId}">
+                            <option value="">-- Chọn danh mục --</option>
+                            <option th:each="cat : ${categories}" th:value="${cat.id}" th:text="${cat.name}"></option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="lecturer">Giảng viên</label>
+                    <input type="text" id="lecturer" th:field="*{lecturer}" placeholder="Nhập tên giảng viên">
+                </div>
+
+                <!-- Image Section -->
+                <div class="form-group">
+                    <label>Hình ảnh</label>
+                    <div class="image-options">
+                        <!-- Tab buttons -->
+                        <div class="image-tabs">
+                            <button type="button" class="tab-btn active" onclick="switchTab('upload')">📁 Tải lên từ máy</button>
+                            <button type="button" class="tab-btn" onclick="switchTab('url')">🔗 Nhập URL</button>
+                        </div>
+
+                        <!-- Upload tab -->
+                        <div id="tab-upload" class="tab-content active">
+                            <input type="file" id="imageFile" name="imageFile" accept="image/*" onchange="previewImage(this)">
+                            <p class="input-hint">Chấp nhận: JPG, PNG, GIF, WEBP</p>
+                        </div>
+
+                        <!-- URL tab -->
+                        <div id="tab-url" class="tab-content">
+                            <input type="text" id="image" th:field="*{image}" placeholder="https://example.com/image.png">
+                        </div>
+
+                        <!-- Preview ảnh hiện tại (khi Edit) -->
+                        <div class="image-preview" id="imagePreview">
+                            <p class="preview-label">Xem trước:</p>
+                            <img id="previewImg"
+                                 th:if="${course.image != null and !course.image.isEmpty()}"
+                                 th:src="@{${course.image}}"
+                                 alt="Preview">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <span th:if="${course.id == null}">➕ Thêm học phần</span>
+                        <span th:if="${course.id != null}">💾 Cập nhật</span>
+                    </button>
+                    <a th:href="@{/}" class="btn btn-outline">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Course Registration System</p>
+        </div>
+    </footer>
+
+    <script>
+        function switchTab(tab) {
+            // Hide all tabs & deactivate buttons
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+
+            // Show selected tab
+            document.getElementById('tab-' + tab).classList.add('active');
+
+            // Activate button
+            if (tab === 'upload') {
+                document.querySelectorAll('.tab-btn')[0].classList.add('active');
+                // Clear URL input khi chọn upload
+                document.getElementById('image').value = '';
+            } else {
+                document.querySelectorAll('.tab-btn')[1].classList.add('active');
+                // Clear file input khi chọn URL
+                document.getElementById('imageFile').value = '';
+            }
+        }
+
+        function previewImage(input) {
+            var preview = document.getElementById('previewImg');
+            var previewContainer = document.getElementById('imagePreview');
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    if (!preview) {
+                        preview = document.createElement('img');
+                        preview.id = 'previewImg';
+                        preview.alt = 'Preview';
+                        previewContainer.appendChild(preview);
+                    }
+                    preview.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>

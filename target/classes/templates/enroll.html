@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký học phần - Course Registration</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <div class="container nav-content">
+            <a th:href="@{/}" class="nav-brand">📚 Course Registration</a>
+            <div class="nav-links">
+                <div sec:authorize="isAuthenticated()" class="user-menu">
+                    <a th:href="@{/}" class="btn btn-outline btn-sm">🏠 Trang chủ</a>
+                    <a th:href="@{/enroll/my-courses}" class="btn btn-outline btn-sm">📚 Học phần của tôi</a>
+                    <!-- Avatar Dropdown -->
+                    <div class="avatar-dropdown">
+                        <img class="avatar-img"
+                             th:if="${currentUser != null && currentUser.avatar != null && !currentUser.avatar.isEmpty()}"
+                             th:src="@{${currentUser.avatar}}" alt="Avatar">
+                        <div class="avatar-img avatar-default"
+                             th:unless="${currentUser != null && currentUser.avatar != null && !currentUser.avatar.isEmpty()}">
+                            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+                        </div>
+                        <div class="dropdown-menu">
+                            <div class="dropdown-header">
+                                <strong th:text="${currentUser != null && currentUser.fullName != null ? currentUser.fullName : (currentUser != null ? currentUser.username : 'User')}">User</strong>
+                                <span class="dropdown-email" th:if="${currentUser != null}" th:text="${currentUser.email}">email</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <a th:href="@{/account}" class="dropdown-item">👤 Tài khoản</a>
+                            <div class="dropdown-item" onclick="toggleDarkMode()">
+                                <span id="darkModeIcon">🌙</span> <span id="darkModeText">Chế độ tối</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <form th:action="@{/logout}" method="post">
+                                <button type="submit" class="dropdown-item dropdown-logout">🚪 Đăng xuất</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Header with Search -->
+    <header class="header header-student">
+        <div class="container">
+            <h1>📋 Đăng ký học phần</h1>
+            <p>Chọn các học phần bạn muốn đăng ký</p>
+            <form class="search-bar" th:action="@{/enroll}" method="get">
+                <input type="hidden" name="categoryId" th:value="${selectedCategoryId}">
+                <input type="text" name="keyword" th:value="${keyword}" placeholder="🔍 Tìm kiếm theo tên học phần..." class="search-input">
+                <button type="submit" class="btn-search">Tìm kiếm</button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Category Filter -->
+    <div class="container filter-bar">
+        <a th:href="@{/enroll(keyword=${keyword})}" th:classappend="${selectedCategoryId == null} ? ' active' : ''" class="filter-chip">Tất cả</a>
+        <a th:each="cat : ${categories}" th:href="@{/enroll(categoryId=${cat.id}, keyword=${keyword})}"
+           th:classappend="${selectedCategoryId != null && selectedCategoryId == cat.id} ? ' active' : ''"
+           th:text="${cat.name}" class="filter-chip">Category</a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="container" style="margin-top: 20px;">
+        <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+        <div class="alert alert-error" th:if="${error}" th:text="${error}"></div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container">
+        <div class="enroll-grid" th:if="${not #lists.isEmpty(courses)}">
+            <div th:each="course : ${courses}"
+                 th:class="${enrolledIds.contains(course.id)} ? 'enroll-card enrolled' : 'enroll-card'">
+                <div class="enroll-card-img">
+                    <img th:if="${course.image != null and !course.image.isEmpty()}"
+                         th:src="@{${course.image}}"
+                         th:alt="${course.name}">
+                    <img th:unless="${course.image != null and !course.image.isEmpty()}"
+                         src="https://via.placeholder.com/400x200?text=No+Image"
+                         alt="No image available">
+                    <!-- Enrolled badge -->
+                    <span class="enrolled-badge" th:if="${enrolledIds.contains(course.id)}">✅ Đã đăng ký</span>
+                </div>
+                <div class="enroll-card-body">
+                    <h3 th:text="${course.name}">Course Name</h3>
+                    <div class="course-details">
+                        <span class="badge credits">
+                            🎓 <span th:text="${course.credits}">3</span> tín chỉ
+                        </span>
+                        <span class="badge lecturer" th:if="${course.lecturer != null}">
+                            👨‍🏫 <span th:text="${course.lecturer}">Lecturer</span>
+                        </span>
+                    </div>
+                    <div class="enroll-action">
+                        <!-- Chưa đăng ký → nút Enroll -->
+                        <form th:unless="${enrolledIds.contains(course.id)}"
+                              th:action="@{/enroll/{id}(id=${course.id})}" method="post">
+                            <button type="submit" class="btn btn-enroll">📝 Đăng ký</button>
+                        </form>
+                        <!-- Đã đăng ký → disabled -->
+                        <button th:if="${enrolledIds.contains(course.id)}" class="btn btn-enrolled" disabled>
+                            ✅ Đã đăng ký
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty state -->
+        <div class="empty-state" th:if="${#lists.isEmpty(courses)}">
+            <p>📭 Chưa có học phần nào để đăng ký.</p>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2026 Course Registration System</p>
+        </div>
+    </footer>
+    <script th:src="@{/js/darkmode.js}"></script>
+</body>
+</html>

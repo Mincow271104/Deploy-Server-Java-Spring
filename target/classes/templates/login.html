@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập - Course Registration</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <h2>🔐 Đăng nhập</h2>
+
+            <!-- Thông báo lỗi -->
+            <div class="alert alert-error" th:if="${param.error}">
+                Tên đăng nhập hoặc mật khẩu không đúng!
+            </div>
+
+            <!-- Thông báo logout -->
+            <div class="alert alert-success" th:if="${param.logout}">
+                Bạn đã đăng xuất thành công.
+            </div>
+
+            <!-- Thông báo đăng ký thành công -->
+            <div class="alert alert-success" th:if="${success}" th:text="${success}"></div>
+
+            <form th:action="@{/login}" method="post">
+                <div class="form-group">
+                    <label for="username">Tên đăng nhập</label>
+                    <input type="text" id="username" name="username" placeholder="Nhập tên đăng nhập" required autofocus>
+                </div>
+                <div class="form-group">
+                    <label for="password">Mật khẩu</label>
+                    <input type="password" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Đăng nhập</button>
+            </form>
+
+            <div class="auth-footer">
+                <p>Chưa có tài khoản? <a th:href="@{/register}">Đăng ký ngay</a></p>
+                <a th:href="@{/}" class="back-home">← Về trang chủ</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

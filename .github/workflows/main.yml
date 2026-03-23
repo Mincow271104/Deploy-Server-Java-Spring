@@ -1,0 +1,20 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches:
+      - main  # Trigger khi push lên branch main. Thay bằng branch của bạn nếu khác.
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v6.0.2
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v4.0.0
+        with:
+          username: thunha2014  # Thay bằng username Docker Hub của bạn (ví dụ: mincow271104)
+          password: ${{ secrets.DOCKER_HUB }}  # Tham chiếu secret bạn vừa thêm (nếu tên là DOCKER_HUB_TOKEN thì thay thành ${{ secrets.DOCKER_HUB_TOKEN }})

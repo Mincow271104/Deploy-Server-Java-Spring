@@ -18,3 +18,10 @@ jobs:
         with:
           username: thunha2014  # Thay bằng username Docker Hub của bạn (ví dụ: mincow271104)
           password: ${{ secrets.DOCKER_HUB }}  # Tham chiếu secret bạn vừa thêm (nếu tên là DOCKER_HUB_TOKEN thì thay thành ${{ secrets.DOCKER_HUB_TOKEN }})
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6.0.0
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: thunha2014/elearning-app:latest   # thay tên image của bạn

@@ -31,15 +31,29 @@ public class StudentService {
         return studentRepository.existsByEmail(email);
     }
 
-    public void registerStudent(String username, String email, String password) {
+    /**
+     * Đăng ký học viên mới - Password sẽ được mã hóa BCrypt trước khi lưu
+     */
+    public void registerStudent(String username, String email, String rawPassword) {
+        // Kiểm tra tồn tại trước khi tạo
+        if (existsByUsername(username)) {
+            throw new RuntimeException("Username đã tồn tại!");
+        }
+        if (existsByEmail(email)) {
+            throw new RuntimeException("Email đã tồn tại!");
+        }
+
         Student student = new Student();
         student.setUsername(username);
         student.setEmail(email);
-        student.setPassword(passwordEncoder.encode(password));
+
+        // ←←← BCrypt encode - Đây là dòng fix lỗi login
+        student.setPassword(passwordEncoder.encode(rawPassword));
 
         // Gán role STUDENT mặc định
         Role studentRole = roleRepository.findByName("STUDENT")
-                .orElseThrow(() -> new RuntimeException("Role STUDENT not found"));
+                .orElseThrow(() -> new RuntimeException("Role STUDENT không tồn tại trong database!"));
+
         Set<Role> roles = new HashSet<>();
         roles.add(studentRole);
         student.setRoles(roles);
